@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# Function to check if group exists
+groupExist() {
+    getent group "$1" &>/dev/null
+    return $?
+}
+
+# Create group if not exists
+groupExist "webAdmins"
+if [ $? -eq 0 ]; then
+    echo "Group webAdmins already exists"
+else
+    groupadd webAdmins
+    echo "Group webAdmins created"
+fi
+
+# Add users to the group using groupmems
+groupmems -g webAdmins -a Developer
+groupmems -g webAdmins -a Operator
+echo "Users Developer and Operator assigned to webAdmins group"
+
+# List members to verify
+echo "Current members of webAdmins:"
+groupmems -g webAdmins -l
+
+
+
+
+

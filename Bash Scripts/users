@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# Function to check if user exists
+userExist() {
+    id "$1" &>/dev/null
+    return $?
+}
+
+# Create Developer user if not exists
+userExist "Developer"
+if [ $? -eq 0 ]; then
+    echo "User Developer already exists"
+else
+    useradd Developer
+    echo "User Developer created"
+fi
+
+# Create OpsTeam user if not exists
+userExist "Operator"
+if [ $? -eq 0 ]; then
+    echo "User Operator already exists"
+else
+    useradd Operator
+    echo "User Operator created"
+fi
