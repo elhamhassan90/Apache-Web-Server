@@ -1,0 +1,28 @@
+---
+# tasks file for roles/apache
+- name: install apache
+  ansible.builtin.yum:
+    name: httpd
+    state: present
+
+- name: start and enable httpd service
+  ansible.builtin.service:
+    name: httpd
+    state: started
+    enabled: yes
+
+- name: allow HTTP traffic through firewall
+  ansible.posix.firewalld:
+    service: http
+    permanent: yes
+    state: enabled
+  notify:
+    - reload firewalld
+
+- name: add custom root page
+  ansible.builtin.template:
+    src: index.html.j2
+    dest: /var/www/html/index.html
+    mode: 0644
+  notify:
+    - restart apache service
