@@ -12,10 +12,10 @@ pipeline {
                         string(credentialsId: 'vm3-sudo-password', variable: 'SUDO_PASS')
                     ]) {
                         sh """
-                            scp -i ${SSH_PRIVATE_KEY} -r ./Bash_Scripts/ elham@192.168.142.129:/home/elham/Desktop/
-                            ssh -i ${SSH_PRIVATE_KEY} elham@192.168.142.129 "echo ${SUDO_PASS} | sudo -S chmod a+x /home/elham/Desktop/Bash_Scripts/*"
+                            scp -i ${SSH_PRIVATE_KEY} -r ./Bash-Scripts/ elham@192.168.142.129:/home/elham/Desktop/
+                            ssh -i ${SSH_PRIVATE_KEY} elham@192.168.142.129 "echo ${SUDO_PASS} | sudo -S chmod a+x /home/elham/Desktop/Bash-Scripts/*"
                         """
-                        env.MEMS = sh(script: "ssh -i ${SSH_PRIVATE_KEY} elham@192.168.142.129 'echo ${SUDO_PASS} | sudo -S /home/elham/Desktop/Bash_Scripts/groups-and-assign.sh'", returnStdout: true).trim()
+                        env.MEMS = sh(script: "ssh -i ${SSH_PRIVATE_KEY} elham@192.168.142.129 'echo ${SUDO_PASS} | sudo -S /home/elham/Desktop/Bash-Scripts/groups-and-assign.sh'", returnStdout: true).trim()
                         echo "Members: ${MEMS}"
                     }
                 }
