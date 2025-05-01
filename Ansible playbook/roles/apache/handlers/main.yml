@@ -1,0 +1,11 @@
+---
+# handlers file for roles/apache
+- name: reload firewalld
+  service:
+    name: firewalld
+    state: reloaded
+
+- name: restart apache service
+  ansible.builtin.service:
+    name: httpd
+    state: restarted
