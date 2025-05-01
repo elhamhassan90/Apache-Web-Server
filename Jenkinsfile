@@ -13,10 +13,10 @@ pipeline {
                         // Run bash-scripts
                         sh """
                             scp -i ${SSH_PRIVATE_KEY} -r ./Bash\ Scripts/ elham@192.168.142.129:/home/elham/Desktop/
-                            ssh -i ${SSH_PRIVATE_KEY} elham@192.168.142.129 "echo ${SUDO_PASS} | sudo -S chmod a+x /home/elham/Desktop/Bash\ Scripts/*"
+                            ssh -i ${SSH_PRIVATE_KEY} elham@192.168.142.129 "echo ${SUDO_PASS} | sudo -S chmod a+x /home/elham/Desktop/Bash Scripts/*"
                         """
                         // Get the list of group members
-                        env.MEMS = sh(script: "ssh -i ${SSH_PRIVATE_KEY} elham@192.168.142.129 'echo ${SUDO_PASS} | sudo -S /home/elham/Desktop/Bash\ Scripts/groups-and-assign.sh'", returnStdout: true).trim()
+                        env.MEMS = sh(script: "ssh -i ${SSH_PRIVATE_KEY} elham@192.168.142.129 'echo ${SUDO_PASS} | sudo -S /home/elham/Desktop/Bash Scripts/groups-and-assign.sh'", returnStdout: true).trim()
                         echo "Members: ${MEMS}"
                     }
                 }
