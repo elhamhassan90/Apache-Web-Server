@@ -12,11 +12,11 @@ pipeline {
                                      string(credentialsId: 'vm3-sudo-password', variable: 'SUDO_PASS')]) {
                         // Run bash-scripts
                         sh """
-                            scp -i ${SSH_PRIVATE_KEY} -r ./Bash\ Scripts/ elham@192.168.142.129:/home/elham/Desktop/
-                            ssh -i ${SSH_PRIVATE_KEY} elham@192.168.142.129 "echo ${SUDO_PASS} | sudo -S chmod a+x /home/elham/Desktop/Bash Scripts/*"
+                            scp -i ${SSH_PRIVATE_KEY} -r ./Bash-Scripts/ elham@192.168.142.129:/home/elham/Desktop/
+                            ssh -i ${SSH_PRIVATE_KEY} elham@192.168.142.129 "echo ${SUDO_PASS} | sudo -S chmod a+x /home/elham/Desktop/Bash-Scripts/*"
                         """
                         // Get the list of group members
-                        env.MEMS = sh(script: "ssh -i ${SSH_PRIVATE_KEY} elham@192.168.142.129 'echo ${SUDO_PASS} | sudo -S /home/elham/Desktop/Bash Scripts/groups-and-assign.sh'", returnStdout: true).trim()
+                        env.MEMS = sh(script: "ssh -i ${SSH_PRIVATE_KEY} elham@192.168.142.129 'echo ${SUDO_PASS} | sudo -S /home/elham/Desktop/Bash-Scripts/groups-and-assign.sh'", returnStdout: true).trim()
                         echo "Members: ${MEMS}"
                     }
                 }
@@ -48,18 +48,5 @@ pipeline {
                     body: """<html>
                                 <body> 
                                     <h2>${JOB_NAME} — Build ${BUILD_NUMBER}</h2>
-                                    <div style="background-color: white; padding: 5px;"> 
-                                        <h3 style="color: black;">Pipeline Status: FAILURE</h3> 
-                                    </div> 
-                                    <p> Check Pipeline Failed Reason <a href="${BUILD_URL}">console output</a>.</p>
-                                    <p> Web Admins: ${MEMS}.</p>
-                                    <p> Pipeline Execution Date: ${DATE}.</p>
-                                </body> 
-                            </html>""",
-                    mimeType: 'text/html'
-                )
-            }
-        }
-    }
-}
+                                    <div style="background-color: white; padding
 
