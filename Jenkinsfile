@@ -29,8 +29,10 @@ pipeline {
         stage('Execute Bash Scripts on VM3') {
             steps {
                 echo "Executing Bash Scripts on VM3 (${VM3_IP})..."
-                withCredentials([string(credentialsId: 'vm3-sudo-password', variable: 'SUDO_PASS'),
-                                 sshUserPrivateKey(credentialsId: 'jenkins_vm3_ssh_key', keyFileVariable: 'SSH_KEY')]) {
+                withCredentials([
+                    string(credentialsId: 'vm3-sudo-password', variable: 'SUDO_PASS'),
+                    sshUserPrivateKey(credentialsId: 'jenkins_vm3_ssh_key', keyFileVariable: 'SSH_KEY')
+                ]) {
                     sh '''
                         ssh -i $SSH_KEY -o StrictHostKeyChecking=no $REMOTE_USER@$VM3_IP "echo $SUDO_PASS | sudo -S bash /tmp/users"
                         ssh -i $SSH_KEY -o StrictHostKeyChecking=no $REMOTE_USER@$VM3_IP "echo $SUDO_PASS | sudo -S bash /tmp/groups-and-assign"
@@ -53,33 +55,31 @@ pipeline {
         }
     }
 
-
-#### Send email notification in case of pipeline failure 
-    post {  
+    // Send email notification in case of pipeline failure 
+    post {
         failure {
-            script {               
-                // Send an email if the pipeline fails
-                env.DATE = new Date().format('yyyy-MM-dd')            
-                emailext (
+            script {
+                env.DATE = new Date().format('yyyy-MM-dd')
+                emailext(
                     subject: "Pipeline Failed: ${JOB_NAME}",
                     to: "elhamhassan252@gmail.com",
-                    from: "webserver@jenkins.com", 
-                    replyTo: "webserver@jenkins.com",               
-                    body:  """<html>
+                    from: "webserver@jenkins.com",
+                    replyTo: "webserver@jenkins.com",
+                    body: """<html>
                                 <body> 
                                     <h2>${JOB_NAME} — Build ${BUILD_NUMBER}</h2>
                                     <div style="background-color: white; padding: 5px;"> 
                                         <h3 style="color: black;">Pipeline Status: FAILURE</h3> 
                                     </div> 
-                                    <p> Check Pipeline Failed Reason <a href="${BUILD_URL}">console output</a>.</p>
-                                    <p> Web Admins: ${MEMS}.</p>
-                                    <p> Pipeline Execution Date: ${DATE}.</p>
+                                    <p>Check Pipeline Failed Reason <a href="${BUILD_URL}">console output</a>.</p>
+                                    <p>Web Admins: ${MEMS}.</p>
+                                    <p>Pipeline Execution Date: ${DATE}.</p>
                                 </body> 
                             </html>""",
-                    mimeType: 'text/html' 
+                    mimeType: 'text/html'
                 )
             }
         }
     }
-
+}
 
