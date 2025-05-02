@@ -1,5 +1,7 @@
 # 🚀 Apache-Web-Server with Jenkins/Ansible
 
+![DevopsProject](./image/1.png)
+
 
 ## 🌟 Project Description
 
@@ -29,7 +31,7 @@ Apache-Web-Server/
 │ 	│ 	└── main.yml
 │       └── templates/
 │		└── index.html.j2
-├── images/              
+├── image/              
 │   ├── 1.png         
 │   ├── 2.png
 │   └── 3.png
@@ -55,12 +57,12 @@ Apache-Web-Server/
 ## 📷 Included Screenshots
 ## 📷 Screenshots
 ### 🔹 Apache content as my cv as html web content
-![Apache](./images/1.png)
+![Apache](./image/2.png)
 
 ---
 
 ### 🔹 Mail After success or failure of CICD build
-![Notification](./images/3.png)
+![Notification](./image/3.png)
 
 ---
 
