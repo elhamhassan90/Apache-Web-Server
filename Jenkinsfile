@@ -5,6 +5,7 @@ pipeline {
         VM3_IP = '192.168.142.129'
         REMOTE_USER = 'elham'
         REMOTE_PATH = '/tmp'
+        DATE = new Date().format('yyyy-MM-dd HH:mm:ss')
     }
 
     stages {
@@ -54,21 +55,7 @@ pipeline {
     }
 
     post {
-        success {
-            emailext(
-                to: "elhamhassan252@gmail.com",
-                subject: "✅ SUCCESS: ${JOB_NAME} #${BUILD_NUMBER}",
-                body: "The pipeline ran successfully. Check it here: ${BUILD_URL}"
-            )
-        }
-
-        failure {
-            emailext(
-                to: "elhamhassan252@gmail.com",
-                subject: "❌ FAILURE: ${JOB_NAME} #${BUILD_NUMBER}",
-                body: "The pipeline failed. Check the error here: ${BUILD_URL}"
-            )
-        }
-    }
-}
+        always {
+            script {
+                def status = currentBuild.currentResult
 
