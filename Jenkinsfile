@@ -2,10 +2,9 @@ pipeline {
     agent any
 
     environment {
+        VM3_IP = '192.168.142.129'
         REMOTE_USER = 'elham'
-        REMOTE_HOST = '192.168.142.129' // VM3 - Web Server
-        VM1_HOST = '192.168.142.128' // VM1 - Ansible installed on host
-        ANSIBLE_DIR = '/home/elham/ansible'
+        REMOTE_PATH = '/tmp'
     }
 
     stages {
@@ -17,13 +16,11 @@ pipeline {
 
         stage('Copy Bash Scripts to VM3') {
             steps {
-                withCredentials([
-                    sshUserPrivateKey(credentialsId: 'jenkins_vm3_ssh_key', keyFileVariable: 'SSH_KEY')
-                ]) {
+                echo "Copying Bash Scripts to VM3 (${VM3_IP})..."
+                withCredentials([sshUserPrivateKey(credentialsId: 'jenkins_vm3_ssh_key', keyFileVariable: 'SSH_KEY')]) {
                     sh '''
-                        echo "Copying bash scripts to VM3 ($REMOTE_HOST)..."
-                        scp -i $SSH_KEY -o StrictHostKeyChecking=no bash-scripts/*.sh ${REMOTE_USER}@${REMOTE_HOST}:/tmp/
-                        ssh -i $SSH_KEY -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_HOST} "chmod +x /tmp/*.sh"
+                        scp -i $SSH_KEY -o StrictHostKeyChecking=no Bash-Scripts/users $REMOTE_USER@$VM3_IP:$REMOTE_PATH/
+                        scp -i $SSH_KEY -o StrictHostKeyChecking=no Bash-Scripts/groups-and-assign $REMOTE_USER@$VM3_IP:$REMOTE_PATH/
                     '''
                 }
             }
@@ -31,29 +28,12 @@ pipeline {
 
         stage('Execute Bash Scripts on VM3') {
             steps {
-                withCredentials([
-                    sshUserPrivateKey(credentialsId: 'jenkins_vm3_ssh_key', keyFileVariable: 'SSH_KEY'),
-                    usernamePassword(credentialsId: 'vm3-sudo-password', usernameVariable: 'SUDO_USER', passwordVariable: 'SUDO_PASS')
-                ]) {
+                echo "Executing Bash Scripts on VM3 (${VM3_IP})..."
+                withCredentials([string(credentialsId: 'vm3-sudo-password', variable: 'SUDO_PASS'),
+                                 sshUserPrivateKey(credentialsId: 'jenkins_vm3_ssh_key', keyFileVariable: 'SSH_KEY')]) {
                     sh '''
-                        echo "Running install_apache.sh on VM3..."
-                        ssh -i $SSH_KEY -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_HOST} "echo $SUDO_PASS | sudo -S /tmp/install_apache.sh"
-
-                        echo "Running configure_vhosts.sh on VM3..."
-                        ssh -i $SSH_KEY -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_HOST} "echo $SUDO_PASS | sudo -S /tmp/configure_vhosts.sh"
-                    '''
-                }
-            }
-        }
-
-        stage('Trigger Ansible from VM1 Host') {
-            steps {
-                withCredentials([
-                    sshUserPrivateKey(credentialsId: 'jenkins_vm3_ssh_key', keyFileVariable: 'SSH_KEY')
-                ]) {
-                    sh '''
-                        echo "Running Ansible playbook from VM1 host ($VM1_HOST)..."
-                        ssh -i $SSH_KEY -o StrictHostKeyChecking=no ${REMOTE_USER}@${VM1_HOST} "cd ${ANSIBLE_DIR} && ansible-playbook -i inventory apache-deploy.yml"
+                        ssh -i $SSH_KEY -o StrictHostKeyChecking=no $REMOTE_USER@$VM3_IP "echo $SUDO_PASS | sudo -S bash /tmp/users"
+                        ssh -i $SSH_KEY -o StrictHostKeyChecking=no $REMOTE_USER@$VM3_IP "echo $SUDO_PASS | sudo -S bash /tmp/groups-and-assign"
                     '''
                 }
             }
@@ -61,15 +41,10 @@ pipeline {
     }
 
     post {
-        success {
-            echo "Deployment Successful!"
-        }
         failure {
-            emailext(
-                subject: "Jenkins Job Failed: ${env.JOB_NAME}",
-                body: "Build #${env.BUILD_NUMBER} failed. Please check Jenkins logs.",
-                to: "elhamhassan252@gmail.com"
-            )
+            mail to: 'elhamhassan252@gmail.com',
+                 subject: "Pipeline Failed: ${env.JOB_NAME}",
+                 body: "Something went wrong with job ${env.BUILD_URL}"
         }
     }
 }
