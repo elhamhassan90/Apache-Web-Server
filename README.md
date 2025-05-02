@@ -1,10 +1,70 @@
-# Apache-Web-Server with Jenkins/Ansible
+# 🚀 Apache-Web-Server with Jenkins/Ansible
 
-![Project Flowchart](https://github.com/ZiadEltity/Apache-Web-Server-/assets/70934743/0b22336b-f70d-4d9b-bbcd-bf074b82c32d)
 
-## Project Description
+## 🌟 Project Description
 
 This project aims to set up a Continuous Integration/Continuous Deployment (CI/CD) pipeline using Jenkins, Ansible, and GitLab. It involves provisioning virtual machines (VMs) with dedicated services, managing user access, integrating GitLab with Jenkins, and detecting code commits to autonomously execute an Ansible playbook. This playbook installs and configures Apache HTTP Server, and generates an email notification if the pipeline fails.
+
+
+---
+
+## 🗂️ Project Structure
+```
+Apache-Web-Server/
+├── Jenkinsfile      
+├── Bash-Scripts/            
+│   ├── users
+│   └── groups-and-assign
+│
+├── Ansible playbook          
+│   ├── anible.cfg              
+│   ├── inventory
+│   ├── site.yml
+│   └── roles/apache           
+│       ├── tasks/
+│ 	│ 	└── main.yml
+│       ├── handlers/
+│ 	│ 	└── main.yml
+│       ├── vars/
+│ 	│ 	└── main.yml
+│       └── templates/
+│		└── index.html.j2
+├── images/              
+│   ├── 1.png         
+│   ├── 2.png
+│   └── 3.png
+└── README.md
+```
+
+---
+
+---
+## ☁️ Technologies Used
+
+- **Ansible**
+- **Jenkins** 
+- **Gitlab** 
+- **Docker**
+- **3 CentOS VM** as development environment
+-  **Gmail** for notification
+
+---
+
+---
+
+## 📷 Included Screenshots
+## 📷 Screenshots
+### 🔹 Apache content as my cv as html web content
+![Apache](./images/1.png)
+
+---
+
+### 🔹 Mail After success or failure of CICD build
+![Notification](./images/3.png)
+
+---
+
+
 
 ## Prerequisites
 
@@ -142,6 +202,7 @@ This project aims to set up a Continuous Integration/Continuous Deployment (CI/C
     username: "Eng. Elham Hasan Gouda Tammam Kedwany"
    #### Templates (roles/templates/index.html.j2)
    ###### Coding the new apache home page with html
+```
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -253,7 +314,7 @@ This project aims to set up a Continuous Integration/Continuous Deployment (CI/C
   </div>
 </body>
 </html>
-
+```
 
 ## Jenkins File to deploy the Ansible Playbook
 
@@ -332,3 +393,16 @@ This project aims to set up a Continuous Integration/Continuous Deployment (CI/C
     }
 }
 
+
+
+
+
+## 👩‍💻 Author
+**Elham**  
+🔧 DevOps Enthusiast | System Admin | Automation Engineer | Web Designer  
+🚀 Built locally on CentOS and Docker  
+📬 GitHub: https://github.com/elhamhassan90  
+🔗 LinkedIn: www.linkedin.com/in/elham-hasan-6b029433a  
+---
+
+⭐ *If you found this useful or inspiring, star the repo and con
