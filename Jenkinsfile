@@ -38,6 +38,19 @@ pipeline {
                 }
             }
         }
+
+        stage('Run Ansible Playbook') {
+            steps {
+                echo "Running Ansible Playbook to configure Apache Web Server on ${VM3_IP}..."
+                withCredentials([string(credentialsId: 'vm3-sudo-password', variable: 'SUDO_PASS')]) {
+                    sh '''
+                        cd "Ansible playbook"
+                        ansible-playbook site.yml \
+                            --extra-vars "ansible_sudo_pass=$SUDO_PASS"
+                    '''
+                }
+            }
+        }
     }
 
     post {
