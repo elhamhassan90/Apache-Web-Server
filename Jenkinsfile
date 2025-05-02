@@ -57,7 +57,7 @@ pipeline {
 
     // Send email notification in case of pipeline failure 
     post {
-        failure {
+        always {
             script {
                 env.DATE = new Date().format('yyyy-MM-dd')
                 emailext(
