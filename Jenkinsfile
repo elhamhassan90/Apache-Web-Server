@@ -2,9 +2,10 @@ pipeline {
     agent any
 
     environment {
-        REMOTE_HOST = "192.168.142.129"
-        REMOTE_USER = "elham"
-        REMOTE_PATH = "/home/elham/Desktop"
+        REMOTE_USER = 'elham'
+        REMOTE_HOST = '192.168.142.129' // VM3 - Web Server
+        VM1_HOST = '192.168.142.128' // VM1 - Ansible installed on host
+        ANSIBLE_DIR = '/home/elham/ansible'
     }
 
     stages {
@@ -14,47 +15,61 @@ pipeline {
             }
         }
 
-        stage('Copy Bash Scripts') {
+        stage('Copy Bash Scripts to VM3') {
             steps {
                 withCredentials([
-                    sshUserPrivateKey(credentialsId: 'ssh-key', keyFileVariable: 'SSH_PRIVATE_KEY'),
-                    usernamePassword(credentialsId: 'sudo-password', passwordVariable: 'SUDO_PASS', usernameVariable: 'SUDO_USER')
+                    sshUserPrivateKey(credentialsId: 'jenkins_vm3_ssh_key', keyFileVariable: 'SSH_KEY')
                 ]) {
                     sh '''
-                        scp -i "$SSH_PRIVATE_KEY" -r ./Bash-Scripts/ ${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_PATH}/
-                        ssh -i "$SSH_PRIVATE_KEY" ${REMOTE_USER}@${REMOTE_HOST} "echo $SUDO_PASS | sudo -S chmod +x ${REMOTE_PATH}/Bash-Scripts/*"
+                        echo "Copying bash scripts to VM3 ($REMOTE_HOST)..."
+                        scp -i $SSH_KEY -o StrictHostKeyChecking=no bash-scripts/*.sh ${REMOTE_USER}@${REMOTE_HOST}:/tmp/
+                        ssh -i $SSH_KEY -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_HOST} "chmod +x /tmp/*.sh"
                     '''
                 }
             }
         }
 
-        stage('Execute Bash Scripts') {
+        stage('Execute Bash Scripts on VM3') {
             steps {
                 withCredentials([
-                    sshUserPrivateKey(credentialsId: 'ssh-key', keyFileVariable: 'SSH_PRIVATE_KEY'),
-                    usernamePassword(credentialsId: 'sudo-password', passwordVariable: 'SUDO_PASS', usernameVariable: 'SUDO_USER')
+                    sshUserPrivateKey(credentialsId: 'jenkins_vm3_ssh_key', keyFileVariable: 'SSH_KEY'),
+                    usernamePassword(credentialsId: 'vm3-sudo-password', usernameVariable: 'SUDO_USER', passwordVariable: 'SUDO_PASS')
                 ]) {
                     sh '''
-                        ssh -i "$SSH_PRIVATE_KEY" ${REMOTE_USER}@${REMOTE_HOST} "echo $SUDO_PASS | sudo -S bash ${REMOTE_PATH}/Bash-Scripts/groups-and-assign"
-                        ssh -i "$SSH_PRIVATE_KEY" ${REMOTE_USER}@${REMOTE_HOST} "echo $SUDO_PASS | sudo -S bash ${REMOTE_PATH}/Bash-Scripts/users"
+                        echo "Running install_apache.sh on VM3..."
+                        ssh -i $SSH_KEY -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_HOST} "echo $SUDO_PASS | sudo -S /tmp/install_apache.sh"
+
+                        echo "Running configure_vhosts.sh on VM3..."
+                        ssh -i $SSH_KEY -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_HOST} "echo $SUDO_PASS | sudo -S /tmp/configure_vhosts.sh"
                     '''
                 }
             }
         }
 
-        stage('Deploy Apache Web Server - Ansible playbook') {
+        stage('Trigger Ansible from VM1 Host') {
             steps {
-                echo 'Running Ansible playbook here...'
-                // Place your Ansible playbook logic here
+                withCredentials([
+                    sshUserPrivateKey(credentialsId: 'jenkins_vm3_ssh_key', keyFileVariable: 'SSH_KEY')
+                ]) {
+                    sh '''
+                        echo "Running Ansible playbook from VM1 host ($VM1_HOST)..."
+                        ssh -i $SSH_KEY -o StrictHostKeyChecking=no ${REMOTE_USER}@${VM1_HOST} "cd ${ANSIBLE_DIR} && ansible-playbook -i inventory apache-deploy.yml"
+                    '''
+                }
             }
         }
     }
 
     post {
+        success {
+            echo "Deployment Successful!"
+        }
         failure {
-            emailext to: 'elhamhassan252@gmail.com',
-                    subject: "Jenkins Build Failed: ${env.JOB_NAME}",
-                    body: "The build has failed. Please check Jenkins console output for details."
+            emailext(
+                subject: "Jenkins Job Failed: ${env.JOB_NAME}",
+                body: "Build #${env.BUILD_NUMBER} failed. Please check Jenkins logs.",
+                to: "elhamhassan252@gmail.com"
+            )
         }
     }
 }
