@@ -2,8 +2,9 @@ pipeline {
     agent any
 
     environment {
-        SSH_KEY = credentials('elham-ssh-key')
-        SUDO_PASS = credentials('elham-sudo-password')
+        VM3_IP = '192.168.142.129'
+        REMOTE_USER = 'elham'
+        REMOTE_PATH = '/tmp'
     }
 
     stages {
@@ -15,11 +16,11 @@ pipeline {
 
         stage('Copy Bash Scripts to VM3') {
             steps {
-                echo 'Copying Bash Scripts to VM3 (192.168.142.129)...'
-                withCredentials([sshUserPrivateKey(credentialsId: 'elham-ssh-key', keyFileVariable: 'SSH_KEY')]) {
+                echo "Copying Bash Scripts to VM3 (${VM3_IP})..."
+                withCredentials([sshUserPrivateKey(credentialsId: 'jenkins_vm3_ssh_key', keyFileVariable: 'SSH_KEY')]) {
                     sh '''
-                        scp -i $SSH_KEY -o StrictHostKeyChecking=no Bash-Scripts/users elham@192.168.142.129:/tmp/
-                        scp -i $SSH_KEY -o StrictHostKeyChecking=no Bash-Scripts/groups-and-assign elham@192.168.142.129:/tmp/
+                        scp -i $SSH_KEY -o StrictHostKeyChecking=no Bash-Scripts/users $REMOTE_USER@$VM3_IP:$REMOTE_PATH/
+                        scp -i $SSH_KEY -o StrictHostKeyChecking=no Bash-Scripts/groups-and-assign $REMOTE_USER@$VM3_IP:$REMOTE_PATH/
                     '''
                 }
             }
@@ -27,14 +28,12 @@ pipeline {
 
         stage('Execute Bash Scripts on VM3') {
             steps {
-                echo 'Executing Bash Scripts on VM3 (192.168.142.129)...'
-                withCredentials([
-                    string(credentialsId: 'elham-sudo-password', variable: 'SUDO_PASS'),
-                    sshUserPrivateKey(credentialsId: 'elham-ssh-key', keyFileVariable: 'SSH_KEY')
-                ]) {
+                echo "Executing Bash Scripts on VM3 (${VM3_IP})..."
+                withCredentials([string(credentialsId: 'vm3-sudo-password', variable: 'SUDO_PASS'),
+                                 sshUserPrivateKey(credentialsId: 'jenkins_vm3_ssh_key', keyFileVariable: 'SSH_KEY')]) {
                     sh '''
-                        ssh -i $SSH_KEY -o StrictHostKeyChecking=no elham@192.168.142.129 "echo $SUDO_PASS | sudo -S bash /tmp/users"
-                        ssh -i $SSH_KEY -o StrictHostKeyChecking=no elham@192.168.142.129 "echo $SUDO_PASS | sudo -S bash /tmp/groups-and-assign"
+                        ssh -i $SSH_KEY -o StrictHostKeyChecking=no $REMOTE_USER@$VM3_IP "echo $SUDO_PASS | sudo -S bash /tmp/users"
+                        ssh -i $SSH_KEY -o StrictHostKeyChecking=no $REMOTE_USER@$VM3_IP "echo $SUDO_PASS | sudo -S bash /tmp/groups-and-assign"
                     '''
                 }
             }
@@ -42,11 +41,12 @@ pipeline {
 
         stage('Run Ansible Playbook') {
             steps {
-                echo 'Running Ansible Playbook to configure Apache Web Server on 192.168.142.129...'
-                withCredentials([string(credentialsId: 'elham-sudo-password', variable: 'SUDO_PASS')]) {
+                echo "Running Ansible Playbook to configure Apache Web Server on ${VM3_IP}..."
+                withCredentials([string(credentialsId: 'vm3-sudo-password', variable: 'SUDO_PASS')]) {
                     sh '''
                         cd "Ansible playbook"
-                        ansible-playbook site.yml --extra-vars ansible_sudo_pass=$SUDO_PASS
+                        ansible-playbook site.yml \
+                            --extra-vars "ansible_sudo_pass=$SUDO_PASS"
                     '''
                 }
             }
@@ -54,19 +54,20 @@ pipeline {
     }
 
     post {
-        always {
-            script {
-                emailext (
-                    to: 'elhamhassan252@gmail.com',
-                    subject: "Build result: ${currentBuild.currentResult}",
-                    body: """
-                        Jenkins Job: ${env.JOB_NAME}
-                        Build Number: ${env.BUILD_NUMBER}
-                        Result: ${currentBuild.currentResult}
-                        Check console output at: ${env.BUILD_URL}
-                    """
-                )
-            }
+        success {
+            emailext(
+                to: "elhamhassan252@gmail.com",
+                subject: "✅ SUCCESS: ${JOB_NAME} #${BUILD_NUMBER}",
+                body: "The pipeline ran successfully. Check it here: ${BUILD_URL}"
+            )
+        }
+
+        failure {
+            emailext(
+                to: "elhamhassan252@gmail.com",
+                subject: "❌ FAILURE: ${JOB_NAME} #${BUILD_NUMBER}",
+                body: "The pipeline failed. Check the error here: ${BUILD_URL}"
+            )
         }
     }
 }
