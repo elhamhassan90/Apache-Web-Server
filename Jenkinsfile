@@ -55,13 +55,13 @@ pipeline {
         }
     }
 
-    // Send email notification in case of pipeline failure 
     post {
         always {
             script {
                 env.DATE = new Date().format('yyyy-MM-dd')
+                def status = currentBuild.result ?: 'SUCCESS'
                 emailext(
-                    subject: "Pipeline Failed: ${JOB_NAME}",
+                    subject: "Pipeline ${status}: ${JOB_NAME}",
                     to: "elhamhassan252@gmail.com",
                     from: "webserver@jenkins.com",
                     replyTo: "webserver@jenkins.com",
@@ -69,10 +69,9 @@ pipeline {
                                 <body> 
                                     <h2>${JOB_NAME} — Build ${BUILD_NUMBER}</h2>
                                     <div style="background-color: white; padding: 5px;"> 
-                                        <h3 style="color: black;">Pipeline Status: FAILURE</h3> 
+                                        <h3 style="color: black;">Pipeline Status: ${status}</h3> 
                                     </div> 
-                                    <p>Check Pipeline Failed Reason <a href="${BUILD_URL}">console output</a>.</p>
-                                    <p>Web Admins: ${MEMS}.</p>
+                                    <p>Check <a href="${BUILD_URL}">console output</a>.</p>
                                     <p>Pipeline Execution Date: ${DATE}.</p>
                                 </body> 
                             </html>""",
