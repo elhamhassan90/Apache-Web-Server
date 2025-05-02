@@ -53,12 +53,33 @@ pipeline {
         }
     }
 
-    post {
+
+#### Send email notification in case of pipeline failure 
+    post {  
         failure {
-            mail to: 'elhamhassan252@gmail.com',
-                 subject: "Pipeline Failed: ${env.JOB_NAME}",
-                 body: "Something went wrong with job ${env.BUILD_URL}"
+            script {               
+                // Send an email if the pipeline fails
+                env.DATE = new Date().format('yyyy-MM-dd')            
+                emailext (
+                    subject: "Pipeline Failed: ${JOB_NAME}",
+                    to: "elhamhassan252@gmail.com",
+                    from: "webserver@jenkins.com", 
+                    replyTo: "webserver@jenkins.com",               
+                    body:  """<html>
+                                <body> 
+                                    <h2>${JOB_NAME} — Build ${BUILD_NUMBER}</h2>
+                                    <div style="background-color: white; padding: 5px;"> 
+                                        <h3 style="color: black;">Pipeline Status: FAILURE</h3> 
+                                    </div> 
+                                    <p> Check Pipeline Failed Reason <a href="${BUILD_URL}">console output</a>.</p>
+                                    <p> Web Admins: ${MEMS}.</p>
+                                    <p> Pipeline Execution Date: ${DATE}.</p>
+                                </body> 
+                            </html>""",
+                    mimeType: 'text/html' 
+                )
+            }
         }
     }
-}
+
 
