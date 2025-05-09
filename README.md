@@ -66,6 +66,24 @@ Apache-Web-Server/
 
 ---
 
+## 🎥 Project Demonstration Video
+
+You can find a recorded video that explains and demonstrates how to run and use the Apache Web Server project.
+
+📁 The video is located inside the `image/` folder in this repository:
+**image/Appache-web-server.mp4.rar**
+![Apache](./image/Appache-web-server.mp4.rar)
+
+To watch the video:
+1. Go to the `images` folder in this repo.
+2. Download the file `Appache-web-server.mp4.rar`.
+3. Extract it using any archive tool (e.g., WinRAR).
+4. Play the `.mp4` file to see the step-by-step project explanation.
+
+The video covers:
+- Project structure.
+- How to run the pipeline and playbooks.
+- Final working output of the server.
 
 
 ## Prerequisites
