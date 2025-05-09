@@ -72,10 +72,9 @@ You can find a recorded video that explains and demonstrates how to run and use 
 
 📁 The video is located inside the `image/` folder in this repository:
 **image/Appache-web-server.mp4.rar**
-![Apache](./image/Appache-web-server.mp4.rar)
 
 To watch the video:
-1. Go to the `images` folder in this repo.
+1. Go to the `image` folder in this repo.
 2. Download the file `Appache-web-server.mp4.rar`.
 3. Extract it using any archive tool (e.g., WinRAR).
 4. Play the `.mp4` file to see the step-by-step project explanation.
